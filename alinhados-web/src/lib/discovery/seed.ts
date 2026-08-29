@@ -1,0 +1,193 @@
+import type { PerfilBarbeiroPublico, PerfilBarbeariaPublico } from '@/contracts-local';
+
+/**
+ * Dados de exemplo do feed enquanto não há API (mesma filosofia do MockAuthGateway).
+ * Os ids são fixos para que a exclusão de já-vistos (RN04) sobreviva a reloads.
+ * Inclui de propósito 1 barbeiro indisponível e 1 barbearia pausada, para exercitar
+ * RN05/RN06 (não devem aparecer no feed).
+ */
+
+/** Placeholder visual sem asset externo: quadrado de cor como data URI SVG. */
+function foto(cor: string, rotulo = ''): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="${cor}"/><text x="50%" y="50%" font-family="sans-serif" font-size="26" fill="#0b0b0b" text-anchor="middle" dominant-baseline="middle">${rotulo}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+export interface BarbeiroSeed extends PerfilBarbeiroPublico {
+  /** Interno (não faz parte do DTO): RN05 — barbeiro "não disponível" não entra no feed. */
+  disponivel: boolean;
+}
+
+export const BARBEIROS_SEED: BarbeiroSeed[] = [
+  {
+    id: '10000000-0000-4000-8000-000000000001',
+    nome: 'João Almeida',
+    apelido_profissional: 'João Navalha',
+    avatar_url: foto('#c6f24e', 'JN'),
+    cidade: 'São Paulo',
+    estado: 'SP',
+    servicos: ['Degradê', 'Barba', 'Navalhado'],
+    valores: ['Pontualidade', 'Organização'],
+    taxa_ocupacao: 40,
+    comissao_desejada: 50,
+    esta_desempregado: true,
+    anos_experiencia: 8,
+    cursos_formacao: 'Barbearia avançada, Visagismo',
+    faturamento_mensal: 6000,
+    fotos: [
+      { url: foto('#b39cf9', 'Corte 1'), ordem: 1, is_avatar: false },
+      { url: foto('#f7a23b', 'Corte 2'), ordem: 2, is_avatar: false },
+    ],
+    disponivel: true,
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000002',
+    nome: 'Marcos Silva',
+    apelido_profissional: 'Marcão',
+    avatar_url: foto('#b39cf9', 'MS'),
+    cidade: 'Campinas',
+    estado: 'SP',
+    servicos: ['Corte social', 'Sobrancelha'],
+    valores: ['Ambição', 'Criatividade'],
+    taxa_ocupacao: 80,
+    comissao_desejada: 55,
+    esta_desempregado: false,
+    anos_experiencia: 5,
+    cursos_formacao: 'Colorimetria',
+    faturamento_mensal: 8500,
+    fotos: [{ url: foto('#c6f24e', 'Corte 1'), ordem: 1, is_avatar: false }],
+    disponivel: true,
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000003',
+    nome: 'Rafael Costa',
+    apelido_profissional: 'Rafa',
+    avatar_url: foto('#f7a23b', 'RC'),
+    cidade: 'Rio de Janeiro',
+    estado: 'RJ',
+    servicos: ['Degradê', 'Freestyle'],
+    valores: ['Respeito', 'Trabalho em equipe'],
+    taxa_ocupacao: 30,
+    comissao_desejada: 45,
+    esta_desempregado: true,
+    anos_experiencia: 12,
+    cursos_formacao: null,
+    faturamento_mensal: null,
+    fotos: [],
+    disponivel: true,
+  },
+  {
+    // RN05: indisponível — NÃO deve aparecer no feed.
+    id: '10000000-0000-4000-8000-000000000004',
+    nome: 'Pedro Alves',
+    apelido_profissional: 'PA',
+    avatar_url: foto('#8a8a8a', 'PA'),
+    cidade: 'São Paulo',
+    estado: 'SP',
+    servicos: ['Corte'],
+    valores: [],
+    taxa_ocupacao: 100,
+    comissao_desejada: 50,
+    esta_desempregado: false,
+    anos_experiencia: 3,
+    cursos_formacao: null,
+    faturamento_mensal: null,
+    fotos: [],
+    disponivel: false,
+  },
+];
+
+export const BARBEARIAS_SEED: PerfilBarbeariaPublico[] = [
+  {
+    id: '20000000-0000-4000-8000-000000000001',
+    nome: 'Barbearia do Zé',
+    avatar_url: foto('#c6f24e', 'BZ'),
+    cidade: 'São Paulo',
+    estado: 'SP',
+    num_cadeiras: 4,
+    comissao_paga: 50,
+    tem_fixo: true,
+    valor_fixo: 1500,
+    valores: ['Pontualidade', 'Ambiente familiar'],
+    nome_decisor: 'José',
+    vagas_abertas: 2,
+    tem_clube: true,
+    descricao_clube: 'Clube de assinatura mensal com cortes ilimitados.',
+    tem_pops: false,
+    num_unidades: 1,
+    e_franquia: false,
+    faturamento_medio: 40000,
+    esta_contratando: true,
+    fotos: [
+      { url: foto('#b39cf9', 'Casa 1'), ordem: 1, is_avatar: false },
+      { url: foto('#f7a23b', 'Casa 2'), ordem: 2, is_avatar: false },
+    ],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000002',
+    nome: 'Corte Nobre',
+    avatar_url: foto('#b39cf9', 'CN'),
+    cidade: 'Santos',
+    estado: 'SP',
+    num_cadeiras: 6,
+    comissao_paga: 55,
+    tem_fixo: false,
+    valor_fixo: null,
+    valores: ['Excelência', 'Inovação'],
+    nome_decisor: 'Marina',
+    vagas_abertas: 3,
+    tem_clube: false,
+    descricao_clube: null,
+    tem_pops: true,
+    num_unidades: 2,
+    e_franquia: false,
+    faturamento_medio: 75000,
+    esta_contratando: true,
+    fotos: [{ url: foto('#c6f24e', 'Casa 1'), ordem: 1, is_avatar: false }],
+  },
+  {
+    id: '20000000-0000-4000-8000-000000000003',
+    nome: 'Imperial Barber',
+    avatar_url: foto('#f7a23b', 'IB'),
+    cidade: 'Rio de Janeiro',
+    estado: 'RJ',
+    num_cadeiras: 8,
+    comissao_paga: 60,
+    tem_fixo: true,
+    valor_fixo: 2000,
+    valores: ['Tradição', 'Respeito'],
+    nome_decisor: 'Ricardo',
+    vagas_abertas: 1,
+    tem_clube: true,
+    descricao_clube: 'Clube VIP com barbeiro exclusivo.',
+    tem_pops: true,
+    num_unidades: 3,
+    e_franquia: true,
+    faturamento_medio: 120000,
+    esta_contratando: true,
+    fotos: [],
+  },
+  {
+    // RN06: pausada ("parei de contratar") — NÃO deve aparecer no feed.
+    id: '20000000-0000-4000-8000-000000000004',
+    nome: 'Ale Wood',
+    avatar_url: foto('#8a8a8a', 'AW'),
+    cidade: 'São Paulo',
+    estado: 'SP',
+    num_cadeiras: 3,
+    comissao_paga: 45,
+    tem_fixo: false,
+    valor_fixo: null,
+    valores: [],
+    nome_decisor: 'Alexandre',
+    vagas_abertas: 0,
+    tem_clube: false,
+    descricao_clube: null,
+    tem_pops: false,
+    num_unidades: 1,
+    e_franquia: false,
+    faturamento_medio: null,
+    esta_contratando: false,
+    fotos: [],
+  },
+];

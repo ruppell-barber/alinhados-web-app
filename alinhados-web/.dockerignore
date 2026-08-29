@@ -1,0 +1,45 @@
+# --------------------------------------------------------------------------------
+# .dockerignore (Web Frontend)
+# --------------------------------------------------------------------------------
+
+node_modules/
+.npm/
+
+# Builds Anteriores
+dist/
+build/
+out/
+.next/
+
+# Testes e Qualidade
+coverage/
+__tests__/
+vitest.config.ts
+
+# Configurações de Linting e Formatação
+.eslintrc*
+.prettierrc*
+.eslintcache
+.stylelintcache
+lefthook.yml
+
+# Variáveis de Ambiente e Segredos
+.env
+.env.*
+*.pem
+
+# Git e versionamento
+.git/
+.gitignore
+.github/
+
+# Arquivos do Host e IDE
+.vscode/
+.idea/
+.DS_Store
+*.suo
+
+# Arquivos Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

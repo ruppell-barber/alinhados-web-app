@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens do Alinhados — identidade visual do Padlet (designer Gabriel).
+ * Estilo: neubrutalismo dark + paleta ácida.
+ * Contraste: pares texto/fundo abaixo validados para WCAG AA (RNF13).
+ */
+@theme {
+  --color-ink: #0d0d0d; /* fundo principal (dark) */
+  --color-ink-soft: #1a1a1a; /* cards escuros */
+  --color-paper: #f5f1e8; /* off-white para texto sobre dark */
+  --color-lime: #d7ff3f; /* verde-limão (destaque primário) */
+  --color-grape: #b79cff; /* lilás */
+  --color-tangerine: #ff6b35; /* laranja */
+  --color-mint: #3ddc73; /* verde (CTAs positivos) */
+  --color-danger: #ff5c5c; /* erros sobre dark */
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), sans-serif;
+
+  --shadow-brutal: 4px 4px 0 0 #0d0d0d;
+  --shadow-brutal-sm: 2px 2px 0 0 #0d0d0d;
+  --shadow-brutal-paper: 4px 4px 0 0 #f5f1e8;
+
+  --radius-card: 1rem;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+  }
+
+  /* Foco visível em todo elemento interativo (WCAG AA — RNF13) */
+  :focus-visible {
+    outline: 3px solid var(--color-lime);
+    outline-offset: 2px;
+  }
+}
+
+/* Animação de entrada do overlay de alinhamento (B06/E06). Respeita quem pediu menos
+   movimento (WCAG — prefers-reduced-motion). */
+@keyframes alinhamento-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.anim-alinhamento {
+  animation: alinhamento-pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-alinhamento {
+    animation: none;
+  }
+}

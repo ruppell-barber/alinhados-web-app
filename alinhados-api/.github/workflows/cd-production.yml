@@ -1,0 +1,93 @@
+name: Pipeline 3 - Produção (Release)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check:
+    name: Build & Advanced Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Checkout Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: ruppell-barber/alinhados-contracts
+          path: .alinhados-contracts-temp
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Move Contracts Outside Workspace
+        run: mv .alinhados-contracts-temp ../alinhados-contracts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check & Build
+        run: npm run build
+
+      - name: Run Advanced E2E Tests
+        run: npm run test
+
+  # ==========================================
+  # JOBS FUTUROS: APROVAÇÃO, BUILD IMAGE, E DEPLOY
+  # Descomente e configure conforme necessário
+  # ==========================================
+
+  # acceptance:
+  #   name: Manual Approval
+  #   needs: check
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #   steps:
+  #     - name: Wait for Approval
+  #       run: echo "O deploy foi aprovado pelos revisores definidos no environment 'production'!"
+
+  # build-and-push:
+  #   name: Build & Push Production Image
+  #   needs: acceptance
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Extract Version from Package.json ou Git
+  #       id: get_version
+  #       run: echo "VERSION=v1.0.0" >> $GITHUB_ENV # Substitua por extração real
+  #
+  #     - name: Log in to the Container registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #
+  #     - name: Build and Push image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         push: true
+  #         tags: |
+  #           ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+  #           ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+  # deploy-production:
+  #   name: Deploy to Production
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger Production Deploy
+  #       run: |
+  #         echo "Substitua esse step pela sua action de deploy de produção."
+  #         echo "Implantando ghcr.io/${{ github.repository }}:${{ env.VERSION }} em Produção."

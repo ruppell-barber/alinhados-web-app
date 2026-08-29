@@ -1,0 +1,69 @@
+name: Pipeline 3 - Produção (Release)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check:
+    name: Build & Advanced Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Checkout Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: ruppell-barber/alinhados-contracts
+          path: .alinhados-contracts-temp
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Move Contracts Outside Workspace
+        run: mv .alinhados-contracts-temp ../alinhados-contracts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check & Build
+        run: npm run build
+
+      - name: Run E2E Tests
+        run: npm run test
+
+  # ==========================================
+  # JOBS FUTUROS: APROVAÇÃO MANUAL E DEPLOY DE PRODUÇÃO VERCEL
+  # ==========================================
+
+  # acceptance:
+  #   name: Manual Approval
+  #   needs: check
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #   steps:
+  #     - name: Wait for Approval
+  #       run: echo "O deploy foi aprovado pelos revisores definidos no environment 'production'!"
+
+  # deploy-production:
+  #   name: Deploy to Vercel (Production)
+  #   needs: acceptance
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Install Vercel CLI
+  #       run: npm install --global vercel@latest
+  #     - name: Pull Vercel Environment Information (Production)
+  #       run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+  #     - name: Build Project Artifacts (Production)
+  #       run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+  #     - name: Deploy Project Artifacts to Vercel (Production)
+  #       run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

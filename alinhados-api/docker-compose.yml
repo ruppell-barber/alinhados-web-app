@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      additional_contexts:
+        contracts: ../alinhados-contracts
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://alinhados_user:alinhados_pass@postgres:5432/alinhados_db?schema=public
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: alinhados_user
+      POSTGRES_PASSWORD: alinhados_pass
+      POSTGRES_DB: alinhados_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alinhados_user -d alinhados_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

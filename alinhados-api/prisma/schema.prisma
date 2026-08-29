@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum UserType {
+  barbeiro
+  barbearia
+}
+
+enum ProfileStatus {
+  disponivel // barbeiro buscando colocação
+  aberto // barbearia contratando
+  indisponivel // fora do feed
+  pausado // pausado temporariamente
+  banido // conta suspensa pelo admin
+
+  @@map("profile_status")
+}
+
+enum SwipeDirection {
+  like
+  dislike
+
+  @@map("swipe_direction")
+}
+
+// ============================================================
+// Perfil — hub central, espelha auth.users 1:1
+// id vem do Supabase Auth — não é gerado pelo Prisma
+// ============================================================
+
+model Perfil {
+  id          String        @id @db.Uuid
+  user_type   UserType
+  nome        String?       @db.Text
+  cidade      String?       @db.Text
+  estado      String?       @db.Text
+  pais        String?       @default("Brasil") @db.Text
+  bio         String?       @db.Text
+  avatar_url  String?       @db.Text
+  is_complete Boolean       @default(false)
+  status      ProfileStatus @default(indisponivel)
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  barbeiro_details  BarbeiroDetails?
+  barbearia_details BarbeariaDetails?
+
+  photos             Photo[]
+  swipes_dados       Swipe[]   @relation("SwipesDados")
+  swipes_recebidos   Swipe[]   @relation("SwipesRecebidos")
+  matches_como_a     Match[]   @relation("MatchesComoA")
+  matches_como_b     Match[]   @relation("MatchesComoB")
+  mensagens_enviadas Message[] @relation("MensagensEnviadas")
+
+  // Índice do feed do Discovery (RNF01): filtra por tipo + status + geografia.
+  @@index([user_type, status, estado, cidade])
+  @@map("profiles")
+}
+
+// ============================================================
+// BarbeiroDetails — dados complementares do perfil de barbeiro.
+// Criado/preenchido no fluxo de completar perfil; cpf_hash entra quando o documento for coletado.
+// ============================================================
+
+model BarbeiroDetails {
+  profile_id           String   @id @db.Uuid
+  apelido_profissional String?  @db.Text
+  cpf_hash             String?  @db.Text
+  anos_experiencia     Int?
+  servicos             String[]
+  cursos_formacao      String?  @db.Text
+  comissao_desejada    Int?
+  faturamento_mensal   Decimal? @db.Decimal(10, 2)
+  taxa_ocupacao        Int?
+  recorde_meta         String?  @db.Text
+  valores              String[]
+  barbearia_atual      String?  @db.Text
+  esta_desempregado    Boolean  @default(false)
+
+  perfil Perfil @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+
+  @@map("barbeiro_details")
+}
+
+// ============================================================
+// BarbeariaDetails — dados complementares do perfil de barbearia.
+// Criado/preenchido no fluxo de completar perfil; cnpj_hash entra quando o documento for coletado.
+// ============================================================
+
+model BarbeariaDetails {
+  profile_id        String   @id @db.Uuid
+  nome_decisor      String?  @db.Text
+  cnpj_hash         String?  @db.Text
+  num_cadeiras      Int?
+  vagas_abertas     Int?     @default(0)
+  comissao_paga     Int?
+  tem_fixo          Boolean  @default(false)
+  valor_fixo        Decimal? @db.Decimal(10, 2)
+  tem_clube         Boolean  @default(false)
+  descricao_clube   String?  @db.Text
+  tem_pops          Boolean  @default(false)
+  num_unidades      Int?     @default(1)
+  e_franquia        Boolean  @default(false)
+  faturamento_medio Decimal? @db.Decimal(10, 2)
+  valores           String[]
+  esta_contratando  Boolean  @default(true)
+
+  perfil Perfil @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+
+  @@map("barbearia_details")
+}
+
+// ============================================================
+// Photo — galeria de fotos do perfil (barbeiro e barbearia)
+// ============================================================
+
+model Photo {
+  id         String   @id @default(uuid()) @db.Uuid
+  profile_id String   @db.Uuid
+  url        String   @db.Text
+  ordem      Int?
+  is_avatar  Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  perfil Perfil @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+
+  @@index([profile_id])
+  @@map("photos")
+}
+
+// ============================================================
+// Swipe — like/dislike de um perfil sobre outro (RN: um por par)
+// ============================================================
+
+model Swipe {
+  id         String         @id @default(uuid()) @db.Uuid
+  swiper_id  String         @db.Uuid
+  swiped_id  String         @db.Uuid
+  direction  SwipeDirection
+  created_at DateTime       @default(now())
+
+  swiper Perfil @relation("SwipesDados", fields: [swiper_id], references: [id], onDelete: Cascade)
+  swiped Perfil @relation("SwipesRecebidos", fields: [swiped_id], references: [id], onDelete: Cascade)
+
+  @@unique([swiper_id, swiped_id])
+  @@index([swiped_id])
+  @@map("swipes")
+}
+
+// ============================================================
+// Match — alinhamento (like mútuo) entre dois perfis
+// ============================================================
+
+model Match {
+  id           String   @id @default(uuid()) @db.Uuid
+  profile_a_id String   @db.Uuid
+  profile_b_id String   @db.Uuid
+  deu_certo    Boolean  @default(false)
+  created_at   DateTime @default(now())
+
+  perfil_a Perfil    @relation("MatchesComoA", fields: [profile_a_id], references: [id], onDelete: Cascade)
+  perfil_b Perfil    @relation("MatchesComoB", fields: [profile_b_id], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([profile_a_id, profile_b_id])
+  @@index([profile_b_id])
+  @@map("matches")
+}
+
+// ============================================================
+// Message — mensagens dentro de um alinhamento
+// ============================================================
+
+model Message {
+  id         String    @id @default(uuid()) @db.Uuid
+  match_id   String    @db.Uuid
+  sender_id  String    @db.Uuid
+  content    String    @db.Text
+  read_at    DateTime?
+  created_at DateTime  @default(now())
+
+  match  Match  @relation(fields: [match_id], references: [id], onDelete: Cascade)
+  sender Perfil @relation("MensagensEnviadas", fields: [sender_id], references: [id], onDelete: Cascade)
+
+  @@index([match_id])
+  @@map("messages")
+}

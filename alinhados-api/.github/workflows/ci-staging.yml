@@ -1,0 +1,111 @@
+name: Pipeline 1 - Staging (Integração Contínua)
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  check:
+    name: Build, Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Checkout Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: ruppell-barber/alinhados-contracts
+          path: .alinhados-contracts-temp
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Move Contracts Outside Workspace
+        run: mv .alinhados-contracts-temp ../alinhados-contracts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Linter Check
+        run: npm run lint
+
+      - name: Type Check & Build
+        run: npm run build
+
+      - name: Run Tests & Coverage (Smoke Tests)
+        run: npm run test:cov
+
+  schema-validation:
+    name: Schema Validation Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Checkout Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: ruppell-barber/alinhados-contracts
+          path: .alinhados-contracts-temp
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Move Contracts Outside Workspace
+        run: mv .alinhados-contracts-temp ../alinhados-contracts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Schema Tests
+        run: npm run test:schemas
+
+  # ==========================================
+  # JOBS FUTUROS: BUILD IMAGE, PUSH E DEPLOY
+  # Descomente e configure conforme necessário
+  # ==========================================
+
+  # build-and-push:
+  #   name: Build & Push Docker Image
+  #   needs: check
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Log in to the Container registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #
+  #     - name: Build and Push image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         push: true
+  #         tags: |
+  #           ghcr.io/${{ github.repository }}:lts
+  #           ghcr.io/${{ github.repository }}:develop-${{ github.sha }}
+
+  # deploy-staging:
+  #   name: Deploy to Staging Environment
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger Staging Deploy
+  #       run: |
+  #         echo "Substitua esse step pela sua action de SSH, ECS ou Webhook para seu Host."
+  #         echo "Implantando ghcr.io/${{ github.repository }}:lts em Staging."

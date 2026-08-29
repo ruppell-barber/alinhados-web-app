@@ -1,0 +1,15 @@
+pre-push:
+  commands:
+    lint-format:
+      interactive: true
+      run: node scripts/pre-push-lint.js {push_files}
+
+pre-commit:
+  commands:
+    branch-name:
+      run: node scripts/validate-branch.js
+
+commit-msg:
+  commands:
+    commitlint:
+      run: node scripts/validate-commit.js {1}

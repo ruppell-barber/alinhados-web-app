@@ -1,0 +1,20 @@
+name: Pipeline 4 - Promoção Stable
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # ==========================================
+  # JOB FUTURO: ALIAS VERCEL (STABLE)
+  # ==========================================
+
+  # promote:
+  #   name: Promote to Stable Alias
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Atribuir domínio 'stable' ao deployment da Vercel
+  #       run: |
+  #         echo "Seu ambiente Frontend não usa Registry de Imagem."
+  #         echo "Para frontends na Vercel, você usaria o Vercel CLI para apontar o seu domínio principal (stable) para o ID de deployment que corresponde a esta tag."

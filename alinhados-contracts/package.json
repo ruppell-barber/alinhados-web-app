@@ -1,0 +1,21 @@
+{
+  "name": "@alinhados/contracts",
+  "version": "1.0.0",
+  "description": "Shared Zod schemas, DTOs, and OpenAPI registry for the Alinhados ecosystem",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run src"
+  },
+  "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "lefthook": "^1.6.0",
+    "vitest": "^4.1.9"
+  }
+}

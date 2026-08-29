@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alinhados-web
+    ports:
+      - "3001:3000" # Mapeia a 3000 (padrão de fronts) para a 3001 no Host
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    # O comando abaixo dependerá do framework web escolhido pela equipe
+    # command: npm run dev

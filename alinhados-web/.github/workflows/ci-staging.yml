@@ -1,0 +1,64 @@
+name: Pipeline 1 - Staging (Integração Contínua)
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  check:
+    name: Build, Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Checkout Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: ruppell-barber/alinhados-contracts
+          path: .alinhados-contracts-temp
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Move Contracts Outside Workspace
+        run: mv .alinhados-contracts-temp ../alinhados-contracts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Linter Check
+        run: npm run lint
+
+      - name: Type Check & Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm run test
+
+  # ==========================================
+  # JOBS FUTUROS: DEPLOY NO VERCEL
+  # Descomente e configure conforme necessário
+  # ==========================================
+
+  # deploy-staging:
+  #   name: Deploy to Vercel (Preview / Staging)
+  #   needs: check
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Install Vercel CLI
+  #       run: npm install --global vercel@latest
+  #     - name: Pull Vercel Environment Information
+  #       run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+  #     - name: Build Project Artifacts
+  #       run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+  #     - name: Deploy Project Artifacts to Vercel
+  #       run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}

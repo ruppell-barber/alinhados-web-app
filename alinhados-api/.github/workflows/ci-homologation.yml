@@ -1,0 +1,78 @@
+name: Pipeline 2 - Homologação (Release Candidate)
+
+on:
+  push:
+    branches:
+      - 'release/*'
+
+jobs:
+  check:
+    name: Build & Test (Integração)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Checkout Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: ruppell-barber/alinhados-contracts
+          path: .alinhados-contracts-temp
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Move Contracts Outside Workspace
+        run: mv .alinhados-contracts-temp ../alinhados-contracts
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check & Build
+        run: npm run build
+
+      - name: Run Integration Tests
+        run: npm run test
+
+  # ==========================================
+  # JOBS FUTUROS: BUILD IMAGE, PUSH E DEPLOY
+  # Descomente e configure conforme necessário
+  # ==========================================
+
+  # build-and-push:
+  #   name: Build & Push Release Candidate
+  #   needs: check
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Log in to the Container registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #
+  #     - name: Build and Push image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         push: true
+  #         tags: ghcr.io/${{ github.repository }}:rc-${{ github.sha }}
+
+  # deploy-homologation:
+  #   name: Deploy to Homologation Environment
+  #   needs: build-and-push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Trigger Homologation Deploy
+  #       run: |
+  #         echo "Substitua esse step pela sua action de deploy."
+  #         echo "Implantando ghcr.io/${{ github.repository }}:rc-${{ github.sha }} em Homologação."

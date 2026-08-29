@@ -1,0 +1,41 @@
+name: Pipeline 4 - Promoção Stable
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # ==========================================
+  # JOB FUTURO: PROMOTE STABLE
+  # Descomente e configure conforme necessário
+  # ==========================================
+
+  # promote:
+  #   name: Promote to Stable
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     packages: write
+  #   steps:
+  #     - name: Log in to the Container registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+  #
+  #     - name: Install Skopeo / Crane
+  #       run: |
+  #         # Skopeo já vem instalado no ubuntu-latest, usamos ele para copiar tags
+  #         skopeo --version
+  #
+  #     - name: Retag as Stable
+  #       run: |
+  #         TAG="${{ github.ref_name }}"
+  #         IMAGE="docker://ghcr.io/${{ github.repository }}"
+  #         
+  #         # Re-tagueia a versão específica como -stable e como latest/stable
+  #         skopeo copy --src-creds=${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} --dest-creds=${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} $IMAGE:$TAG $IMAGE:$TAG-stable
+  #         skopeo copy --src-creds=${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} --dest-creds=${{ github.actor }}:${{ secrets.GITHUB_TOKEN }} $IMAGE:$TAG $IMAGE:stable
+  #         
+  #         echo "Imagem $TAG promovida para 'stable' com sucesso!"
